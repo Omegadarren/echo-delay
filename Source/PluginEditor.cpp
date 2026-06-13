@@ -477,7 +477,7 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     }
 
     // ── Left DELAY panel ─────────────────────────────────────────────────
-    drawPanel (g, { 12, 52, 574, 276 }, "DELAY", kAccent);
+    drawPanel (g, { 12, 52, 574, 162 }, "DELAY", kAccent);
 
     // Subtle vertical divider between delay knobs and filter knobs (after Feedback)
     {
@@ -517,7 +517,7 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
         juce::String etTxt = sync ? "(synced)" : (juce::String (et, 1) + " ms");
         g.setFont (juce::Font (8.f));
         g.setColour (kAccent.withAlpha (0.50f));
-        g.drawText (etTxt, etCx - 40, 52 + 276 - 16, 80, 12,
+        g.drawText (etTxt, etCx - 40, 52 + 162 - 16, 80, 12,
                     juce::Justification::centred, false);
     }
 }
