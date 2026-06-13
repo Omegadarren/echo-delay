@@ -20,8 +20,8 @@ public:
     void timerCallback()          override;
 
     // ── Layout constants ───────────────────────────────────────────────────
-    static constexpr int kBaseW = 940;
-    static constexpr int kBaseH = 620;
+    static constexpr int kBaseW = 840;
+    static constexpr int kBaseH = 540;
     static constexpr float       kZoomFactors[] = { 1.0f, 1.5f, 2.0f };
     static constexpr const char* kZoomLabels[]  = { "1x", "1.5x", "2x" };
 
