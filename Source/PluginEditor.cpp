@@ -387,19 +387,17 @@ void EchoDelayAudioProcessorEditor::resized()
     feelSlider  .setBounds (rcx2 - kW / 2, gfY,      kW, kH);
     feelLabel   .setBounds (rcx2 - 40,     gfY + kH, 80, kLH);
 
-    // SATURATION panel (y=246..328)
-    static constexpr int satY = gfY + kH + kLH + 10;  // 130+88+13+10 = 241
-    satInputSlider .setBounds (rcx1 - kW / 2, satY + 10, kW, kH);
-    satInputLabel  .setBounds (rcx1 - 40,     satY + 10 + kH, 80, kLH);
-    satOutputSlider.setBounds (rcx2 - kW / 2, satY + 10, kW, kH);
-    satOutputLabel .setBounds (rcx2 - 40,     satY + 10 + kH, 80, kLH);
+    // SATURATION panel: STYLE selector at top, knobs below
+    static constexpr int satY = gfY + kH + kLH + 10;
+    satStyleLabel.setBounds (RP_X + 22, satY + 10,     RP_W - 44, 12);
+    satStyleCombo.setBounds (RP_X + 22, satY + 22,     RP_W - 44, 22);
+    satInputSlider .setBounds (rcx1 - kW / 2, satY + 50, kW, kH);
+    satInputLabel  .setBounds (rcx1 - 40,     satY + 50 + kH, 80, kLH);
+    satOutputSlider.setBounds (rcx2 - kW / 2, satY + 50, kW, kH);
+    satOutputLabel .setBounds (rcx2 - 40,     satY + 50 + kH, 80, kLH);
 
-    const int styleY = satY + 10 + kH + kLH + 4;
-    satStyleLabel.setBounds (RP_X + 22, styleY,      RP_W - 44, 12);
-    satStyleCombo.setBounds (RP_X + 22, styleY + 12, RP_W - 44, 22);
-
-    // ── Bottom strip (y=336) ──────────────────────────────────────────────
-    static constexpr int botY = 336;
+    // ── Bottom strip (y=410) ─────────────────────────────────────────────
+    static constexpr int botY = 410;
     const int b1cx = W / 4;        // 210
     const int b2cx = W / 2;        // 420
     const int b3cx = W * 3 / 4;    // 630
@@ -501,13 +499,12 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     drawPanel (g, { RP_X, tapY, RP_W, tapPanelH }, "TAP TEMPO", kGold);
 
     const int satY      = gfY + kH + kLH + 10;
-    const int styleBot  = satY + 10 + kH + kLH + 4 + 12 + 22;
-    const int satPanelH = styleBot - satY + 6;
+    const int satPanelH = 50 + kH + kLH + 8;   // style(44)+gap(6)+knob+label(101)+pad(8)
     drawPanel (g, { RP_X, satY, RP_W, satPanelH }, "SATURATION", kOrange);
 
     // ── Bottom strip ──────────────────────────────────────────────────────
-    const int botY = 336;
-    drawPanel (g, { 12, botY, W - 24, 168 }, "WIDTH  /  L-R OFFSET  /  ACCENT",
+    const int botY = 410;
+    drawPanel (g, { 12, botY, W - 24, 148 }, "WIDTH  /  L-R OFFSET  /  ACCENT",
                 kAccent.withAlpha (0.55f));
 
     // Echo time readout (under Echo Time knob in delay panel)
