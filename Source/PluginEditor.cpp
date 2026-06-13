@@ -396,18 +396,18 @@ void EchoDelayAudioProcessorEditor::resized()
     satOutputSlider.setBounds (rcx2 - kW / 2, satY + 50, kW, kH);
     satOutputLabel .setBounds (rcx2 - 40,     satY + 50 + kH, 80, kLH);
 
-    // WIDTH / L-R OFFSET / ACCENT — right column, below saturation
-    static constexpr int widY = satY + 50 + kH + kLH + 8 + 6;  // satPanelH=159, +6 gap → 410
-    const int wcx1 = RP_X + RP_W / 6;       // ~633
-    const int wcx2 = RP_X + RP_W / 2;       // 713
-    const int wcx3 = RP_X + RP_W * 5 / 6;   // ~792
+    // WIDTH / L-R OFFSET / ACCENT — below left DELAY panel (574px wide, spacious)
+    static constexpr int wlaY = 52 + 162 + 6;  // 220
+    const int bcx1 = LP_X + LP_W / 6;           // 107
+    const int bcx2 = LP_X + LP_W / 2;           // 299
+    const int bcx3 = LP_X + LP_W * 5 / 6;       // 490
 
-    widthSlider   .setBounds (wcx1 - kW / 2, widY + 28, kW, kH);
-    widthLabel    .setBounds (wcx1 - 40,     widY + 28 + kH, 80, kLH);
-    lrOffsetSlider.setBounds (wcx2 - kW / 2, widY + 28, kW, kH);
-    lrOffsetLabel .setBounds (wcx2 - 40,     widY + 28 + kH, 80, kLH);
-    accentSlider  .setBounds (wcx3 - kW / 2, widY + 28, kW, kH);
-    accentLabel   .setBounds (wcx3 - 40,     widY + 28 + kH, 80, kLH);
+    widthSlider   .setBounds (bcx1 - kW / 2, wlaY + 14, kW, kH);
+    widthLabel    .setBounds (bcx1 - 40,     wlaY + 14 + kH, 80, kLH);
+    lrOffsetSlider.setBounds (bcx2 - kW / 2, wlaY + 14, kW, kH);
+    lrOffsetLabel .setBounds (bcx2 - 40,     wlaY + 14 + kH, 80, kLH);
+    accentSlider  .setBounds (bcx3 - kW / 2, wlaY + 14, kW, kH);
+    accentLabel   .setBounds (bcx3 - 40,     wlaY + 14 + kH, 80, kLH);
 }
 
 //==============================================================================
@@ -479,6 +479,10 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     // ── Left DELAY panel ─────────────────────────────────────────────────
     drawPanel (g, { 12, 52, 574, 162 }, "DELAY", kAccent);
 
+    // ── WIDTH / L-R OFFSET / ACCENT panel — below left panel ─────────────
+    drawPanel (g, { 12, 220, 574, 112 }, "WIDTH  /  L-R OFFSET  /  ACCENT",
+                kAccent.withAlpha (0.55f));
+
     // Subtle vertical divider between delay knobs and filter knobs (after Feedback)
     {
         const int sp = 574 / 5;
@@ -494,19 +498,13 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     const int kH = 88, kLH = 13;
     const int tapY = 52;
     const int gfY  = tapY + 82;
-    const int tapPanelH = gfY + kH + kLH + 8 - tapY;  // 82+88+13+8 = 191
+    const int tapPanelH = gfY + kH + kLH + 8 - tapY;  // 191
 
     drawPanel (g, { RP_X, tapY, RP_W, tapPanelH }, "TAP TEMPO", kGold);
 
     const int satY      = gfY + kH + kLH + 10;
-    const int satPanelH = 50 + kH + kLH + 8;   // style(44)+gap(6)+knob+label(101)+pad(8)
+    const int satPanelH = 50 + kH + kLH + 8;
     drawPanel (g, { RP_X, satY, RP_W, satPanelH }, "SATURATION", kOrange);
-
-    // ── WIDTH / L-R OFFSET / ACCENT panel (right column) ─────────────────
-    const int widY      = satY + 50 + kH + kLH + 8 + 6;   // 410
-    const int widPanelH = kH + kLH + 36;                   // 137
-    drawPanel (g, { RP_X, widY, RP_W, widPanelH }, "WIDTH / L-R / ACCENT",
-                kAccent.withAlpha (0.55f));
 
     // Echo time readout (under Echo Time knob in delay panel)
     {
