@@ -396,18 +396,18 @@ void EchoDelayAudioProcessorEditor::resized()
     satOutputSlider.setBounds (rcx2 - kW / 2, satY + 50, kW, kH);
     satOutputLabel .setBounds (rcx2 - 40,     satY + 50 + kH, 80, kLH);
 
-    // ── Bottom strip (y=410) ─────────────────────────────────────────────
-    static constexpr int botY = 410;
-    const int b1cx = W / 4;        // 210
-    const int b2cx = W / 2;        // 420
-    const int b3cx = W * 3 / 4;    // 630
+    // WIDTH / L-R OFFSET / ACCENT — right column, below saturation
+    static constexpr int widY = satY + 50 + kH + kLH + 8 + 6;  // satPanelH=159, +6 gap → 410
+    const int wcx1 = RP_X + RP_W / 6;       // ~633
+    const int wcx2 = RP_X + RP_W / 2;       // 713
+    const int wcx3 = RP_X + RP_W * 5 / 6;   // ~792
 
-    widthSlider   .setBounds (b1cx - kW / 2, botY + 20, kW, kH);
-    widthLabel    .setBounds (b1cx - 40,     botY + 20 + kH, 80, kLH);
-    lrOffsetSlider.setBounds (b2cx - kW / 2, botY + 20, kW, kH);
-    lrOffsetLabel .setBounds (b2cx - 40,     botY + 20 + kH, 80, kLH);
-    accentSlider  .setBounds (b3cx - kW / 2, botY + 20, kW, kH);
-    accentLabel   .setBounds (b3cx - 40,     botY + 20 + kH, 80, kLH);
+    widthSlider   .setBounds (wcx1 - kW / 2, widY + 28, kW, kH);
+    widthLabel    .setBounds (wcx1 - 40,     widY + 28 + kH, 80, kLH);
+    lrOffsetSlider.setBounds (wcx2 - kW / 2, widY + 28, kW, kH);
+    lrOffsetLabel .setBounds (wcx2 - 40,     widY + 28 + kH, 80, kLH);
+    accentSlider  .setBounds (wcx3 - kW / 2, widY + 28, kW, kH);
+    accentLabel   .setBounds (wcx3 - 40,     widY + 28 + kH, 80, kLH);
 }
 
 //==============================================================================
@@ -502,9 +502,10 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     const int satPanelH = 50 + kH + kLH + 8;   // style(44)+gap(6)+knob+label(101)+pad(8)
     drawPanel (g, { RP_X, satY, RP_W, satPanelH }, "SATURATION", kOrange);
 
-    // ── Bottom strip ──────────────────────────────────────────────────────
-    const int botY = 410;
-    drawPanel (g, { 12, botY, W - 24, 148 }, "WIDTH  /  L-R OFFSET  /  ACCENT",
+    // ── WIDTH / L-R OFFSET / ACCENT panel (right column) ─────────────────
+    const int widY      = satY + 50 + kH + kLH + 8 + 6;   // 410
+    const int widPanelH = kH + kLH + 36;                   // 137
+    drawPanel (g, { RP_X, widY, RP_W, widPanelH }, "WIDTH / L-R / ACCENT",
                 kAccent.withAlpha (0.55f));
 
     // Echo time readout (under Echo Time knob in delay panel)
