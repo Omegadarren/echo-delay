@@ -293,6 +293,18 @@ void EchoDelayAudioProcessorEditor::timerCallback()
 {
     float bpm = processorRef.apvts.getRawParameterValue ("tapBpm")->load();
     bpmDisplay.setText (juce::String (bpm, 1) + " BPM", juce::dontSendNotification);
+
+    bool syncOn = processorRef.apvts.getRawParameterValue ("syncMode")->load() > 0.5f;
+    if (syncOn != lastSyncState)
+    {
+        lastSyncState = syncOn;
+        if (syncOn)
+            echoTimeSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
+        else
+            echoTimeSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 64, 13);
+        echoTimeSlider.setEnabled (!syncOn);
+    }
+
     repaint();
 }
 
@@ -505,9 +517,24 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
         const int etCx = 12 + sp2 / 2 + sp2;  // col 1 centre
         bool  sync = processorRef.apvts.getRawParameterValue ("syncMode")->load() > 0.5f;
         float et   = processorRef.apvts.getRawParameterValue ("echoTime")->load();
-        juce::String etTxt = sync ? "(synced)" : (juce::String (et, 1) + " ms");
+        juce::String etTxt;
+        if (sync)
+        {
+            float bpm     = processorRef.apvts.getRawParameterValue ("tapBpm")->load();
+            int   noteDiv = (int)processorRef.apvts.getRawParameterValue ("noteDiv")->load();
+            static const float kBeats[] = { 4.f, 2.f, 1.f, 0.5f, 0.25f,
+                                             3.f, 1.5f, 0.75f,
+                                             4.f/3.f, 2.f/3.f, 1.f/3.f };
+            float beatMs = 60000.f / juce::jmax (20.f, bpm);
+            float syncMs = beatMs * (noteDiv >= 0 && noteDiv < 11 ? kBeats[noteDiv] : 0.5f);
+            etTxt = juce::String (syncMs, 1) + " ms";
+        }
+        else
+        {
+            etTxt = juce::String (et, 1) + " ms";
+        }
         g.setFont (juce::Font (8.f));
-        g.setColour (kAccent.withAlpha (0.50f));
+        g.setColour (sync ? kGold.withAlpha (0.75f) : kAccent.withAlpha (0.50f));
         g.drawText (etTxt, etCx - 40, 52 + 162 - 16, 80, 12,
                     juce::Justification::centred, false);
     }

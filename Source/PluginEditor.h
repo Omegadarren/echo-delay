@@ -83,7 +83,8 @@ private:
     std::unique_ptr<ButtonAtt> primeModeAtt;
 
     // ── Zoom ──────────────────────────────────────────────────────────────
-    int zoomIndex { 0 };
+    int  zoomIndex     { 0 };
+    bool lastSyncState { false };
     juce::Rectangle<int> zoomButtonBounds;
 
     juce::TooltipWindow tooltipWindow { this, 600 };   // 600 ms hover delay
