@@ -180,18 +180,18 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor (EchoDelayAudioProc
     setLookAndFeel (laf.get());
 
     // ── Main knobs ────────────────────────────────────────────────────────
-    setupKnob (mixSlider,       mixLabel,       "MIX",       " %",  "Wet/Dry mix",                *this);
-    setupKnob (echoTimeSlider,  echoTimeLabel,  "ECHO TIME", " ms", "Delay time",                  *this);
-    setupKnob (feedbackSlider,  feedbackLabel,  "FEEDBACK",  " %",  "Repeats",                     *this);
-    setupKnob (lowCutSlider,    lowCutLabel,    "LOW CUT",   " Hz", "High-pass on feedback path",  *this);
-    setupKnob (highCutSlider,   highCutLabel,   "HIGH CUT",  " Hz", "Low-pass on feedback path",   *this);
-    setupKnob (grooveSlider,    grooveLabel,    "GROOVE",    " %",  "Shuffle / swing amount",      *this);
-    setupKnob (feelSlider,      feelLabel,      "FEEL",      " ms", "Rushin (−) or Draggin (+)",   *this);
-    setupKnob (satInputSlider,  satInputLabel,  "INPUT",     " dB", "Saturation drive",            *this);
-    setupKnob (satOutputSlider, satOutputLabel, "OUTPUT",    " dB", "Saturation output trim",      *this);
-    setupKnob (widthSlider,     widthLabel,     "WIDTH",     " %",  "Stereo spread of wet signal", *this);
-    setupKnob (lrOffsetSlider,  lrOffsetLabel,  "L/R OFFSET"," ms", "Right channel delay offset",  *this);
-    setupKnob (accentSlider,    accentLabel,    "ACCENT",    " %",  "Beats 2 & 4 emphasis",        *this);
+    setupKnob (mixSlider,       mixLabel,       "MIX",       " %",  "Wet/dry blend — 0% = fully dry, 100% = fully wet echo",             *this);
+    setupKnob (echoTimeSlider,  echoTimeLabel,  "ECHO TIME", " ms", "Echo delay time (1–2000 ms). Overridden when SYNC is on",            *this);
+    setupKnob (feedbackSlider,  feedbackLabel,  "FEEDBACK",  " %",  "Feedback amount — higher values create longer, denser trails",      *this);
+    setupKnob (lowCutSlider,    lowCutLabel,    "LOW CUT",   " Hz", "High-pass filter on the feedback loop — removes low-end build-up",  *this);
+    setupKnob (highCutSlider,   highCutLabel,   "HIGH CUT",  " Hz", "Low-pass filter on the feedback loop — darkens each repeat",        *this);
+    setupKnob (grooveSlider,    grooveLabel,    "GROOVE",    " %",  "Swing/shuffle on even echoes (0% = straight, 100% = full swing)",   *this);
+    setupKnob (feelSlider,      feelLabel,      "FEEL",      " ms", "Nudge all echoes earlier (−, rushin) or later (+, draggin)",        *this);
+    setupKnob (satInputSlider,  satInputLabel,  "INPUT",     " dB", "Pre-saturation gain — boost to add harmonic character",             *this);
+    setupKnob (satOutputSlider, satOutputLabel, "OUTPUT",    " dB", "Post-saturation level — compensate for gain added by saturation",   *this);
+    setupKnob (widthSlider,     widthLabel,     "WIDTH",     " %",  "Stereo width of echo: 0% = mono, 100% = natural, 200% = extra wide", *this);
+    setupKnob (lrOffsetSlider,  lrOffsetLabel,  "L/R OFFSET"," ms", "Shifts the right echo earlier (−) or later (+) relative to left",  *this);
+    setupKnob (accentSlider,    accentLabel,    "ACCENT",    " %",  "Boosts the volume of echoes falling on beats 2 and 4",              *this);
 
     // Tint filter knobs gold, sat knobs orange
     lowCutSlider  .setColour (juce::Slider::rotarySliderFillColourId, kGold);
@@ -217,7 +217,7 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor (EchoDelayAudioProc
 
     // ── Sync toggle ───────────────────────────────────────────────────────
     syncToggle.setClickingTogglesState (true);
-    syncToggle.setTooltip ("Sync echo time to host BPM");
+    syncToggle.setTooltip ("Lock echo time to host BPM using musical note divisions (see NOTE combo)");
     addAndMakeVisible (syncToggle);
     syncAtt = std::make_unique<ButtonAtt> (p.apvts, "syncMode", syncToggle);
 
@@ -225,7 +225,7 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor (EchoDelayAudioProc
     noteDivCombo.addItemList ({ "1/1", "1/2", "1/4", "1/8", "1/16",
                                 "1/2.", "1/4.", "1/8.",
                                 "1/2t", "1/4t", "1/8t" }, 1);
-    noteDivCombo.setTooltip ("Note division for sync mode");
+    noteDivCombo.setTooltip ("Note value used when SYNC is active: whole, half, quarter, 8th, 16th, dotted, and triplet variants");
     addAndMakeVisible (noteDivCombo);
     noteDivLabel.setText ("NOTE", juce::dontSendNotification);
     noteDivLabel.setFont (juce::Font (8.f));
@@ -236,12 +236,13 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor (EchoDelayAudioProc
 
     // ── Prime mode ────────────────────────────────────────────────────────
     primeModeToggle.setClickingTogglesState (true);
-    primeModeToggle.setTooltip ("Lock delay to nearest prime ms");
+    primeModeToggle.setTooltip ("Snap delay time to the nearest prime-number millisecond \u2014 avoids phasing in dense feedback");
     addAndMakeVisible (primeModeToggle);
     primeModeAtt = std::make_unique<ButtonAtt> (p.apvts, "primeMode", primeModeToggle);
 
     // ── Mode combo ────────────────────────────────────────────────────────
     modeCombo.addItemList ({ "Single Echo", "Dual Echo", "Ping-Pong", "Rhythm Echo" }, 1);
+    modeCombo.setTooltip ("Echo routing mode: Single (mono centre), Dual (independent L/R), Ping-Pong (L\u2192R\u2192L), Rhythm (4-tap groove pattern)");
     addAndMakeVisible (modeCombo);
     modeLabel.setText ("MODE", juce::dontSendNotification);
     modeLabel.setFont (juce::Font (8.5f));
@@ -251,17 +252,19 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor (EchoDelayAudioProc
     modeAtt = std::make_unique<ComboAtt> (p.apvts, "mode", modeCombo);
 
     // ── Tap tempo ─────────────────────────────────────────────────────────
-    tapButton.setTooltip ("Tap to set tempo");
+    tapButton.setTooltip ("Click in rhythm to set the echo time by tap tempo (last 8 taps are averaged)");
     tapButton.onClick = [this] { processorRef.tapTempoHit(); };
     addAndMakeVisible (tapButton);
 
     bpmDisplay.setFont (juce::Font (16.f, juce::Font::bold));
     bpmDisplay.setColour (juce::Label::textColourId, kGold);
     bpmDisplay.setJustificationType (juce::Justification::centred);
+    bpmDisplay.setTooltip ("Current tap tempo in BPM \u2014 use the TAP button to set it");
     addAndMakeVisible (bpmDisplay);
 
     // ── Saturation style ──────────────────────────────────────────────────
     satStyleCombo.addItemList ({ "Clean", "Tape", "Tube", "Bit Crush" }, 1);
+    satStyleCombo.setTooltip ("Saturation algorithm: Clean (hard clip), Tape (tanh soft clip), Tube (asymmetric soft clip), Bit Crush (8-bit quantise)");
     addAndMakeVisible (satStyleCombo);
     satStyleLabel.setText ("STYLE", juce::dontSendNotification);
     satStyleLabel.setFont (juce::Font (8.5f));

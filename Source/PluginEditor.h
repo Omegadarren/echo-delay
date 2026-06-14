@@ -86,6 +86,8 @@ private:
     int zoomIndex { 0 };
     juce::Rectangle<int> zoomButtonBounds;
 
+    juce::TooltipWindow tooltipWindow { this, 600 };   // 600 ms hover delay
+
     void applyZoom();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EchoDelayAudioProcessorEditor)
