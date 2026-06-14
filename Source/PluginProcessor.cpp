@@ -205,6 +205,8 @@ float EchoDelayAudioProcessor::readDelay (int ch, float delaySamples) const noex
 {
     const auto& buf = delayBuffer[ch];
     const int   sz  = (int)buf.size();
+    if (sz == 0) return 0.f;   // guard: prepareToPlay not yet called
+    delaySamples = juce::jlimit (1.f, (float)(sz - 2), delaySamples);
     int   rd        = writePos[ch] - (int)delaySamples;
     while (rd < 0) rd += sz;
     rd %= sz;
@@ -216,6 +218,7 @@ float EchoDelayAudioProcessor::readDelay (int ch, float delaySamples) const noex
 void EchoDelayAudioProcessor::writeDelay (int ch, float sample) noexcept
 {
     auto& buf = delayBuffer[ch];
+    if (buf.empty()) return;   // guard: prepareToPlay not yet called
     buf[writePos[ch]] = sample;
     if (++writePos[ch] >= (int)buf.size()) writePos[ch] = 0;
 }
@@ -290,6 +293,13 @@ void EchoDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                              juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+
+    // Safety: if prepareToPlay hasn't been called yet, buffers are empty
+    if (delayBuffer[0].empty() || delayBuffer[1].empty())
+    {
+        buffer.clear();
+        return;
+    }
 
     // Consume MIDI (tap tempo from MIDI clock is handled separately)
     for (const auto meta : midiMessages)
