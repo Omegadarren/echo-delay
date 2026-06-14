@@ -267,10 +267,6 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor (EchoDelayAudioProc
     satStyleCombo.setTooltip ("Saturation algorithm: Clean (hard clip), Tape (tanh soft clip), Tube (asymmetric soft clip), Bit Crush (8-bit quantise)");
     addAndMakeVisible (satStyleCombo);
     satStyleLabel.setText ("STYLE", juce::dontSendNotification);
-    satStyleLabel.setFont (juce::Font (8.5f));
-    satStyleLabel.setColour (juce::Label::textColourId, kTextDim);
-    satStyleLabel.setJustificationType (juce::Justification::centred);
-    addAndMakeVisible (satStyleLabel);
     satStyleAtt = std::make_unique<ComboAtt> (p.apvts, "satStyle", satStyleCombo);
 
     zoomIndex = p.editorZoomIndex;
@@ -390,10 +386,9 @@ void EchoDelayAudioProcessorEditor::resized()
     feelSlider  .setBounds (rcx2 - kW / 2, gfY,      kW, kH);
     feelLabel   .setBounds (rcx2 - 40,     gfY + kH, 80, kLH);
 
-    // SATURATION panel: STYLE selector at top, knobs below
+    // SATURATION panel: STYLE combo below panel title, knobs below
     static constexpr int satY = gfY + kH + kLH + 10;
-    satStyleLabel.setBounds (RP_X + 22, satY + 10,     RP_W - 44, 12);
-    satStyleCombo.setBounds (RP_X + 22, satY + 22,     RP_W - 44, 22);
+    satStyleCombo.setBounds (RP_X + 22, satY + 18,     RP_W - 44, 22);
     satInputSlider .setBounds (rcx1 - kW / 2, satY + 50, kW, kH);
     satInputLabel  .setBounds (rcx1 - 40,     satY + 50 + kH, 80, kLH);
     satOutputSlider.setBounds (rcx2 - kW / 2, satY + 50, kW, kH);
@@ -458,15 +453,10 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
         g.drawText (p2, (int)(sx + w1), 15, (int)w2 + 4, 20, juce::Justification::centredLeft, false);
     }
 
-    // Mode label
-    g.setFont (juce::Font (8.f));
-    g.setColour (kTextDim.withAlpha (0.50f));
-    g.drawText ("MODE", W - 198, 10, 36, 12, juce::Justification::centredLeft, false);
-
     // Version
     g.setFont (juce::Font (8.5f));
     g.setColour (kTextDim.withAlpha (0.45f));
-    g.drawText ("v1.0", W - 48, 36, 40, 10, juce::Justification::centredRight, false);
+    g.drawText ("v1.3", W - 48, 36, 40, 10, juce::Justification::centredRight, false);
 
     // VU meters
     {
