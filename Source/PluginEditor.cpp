@@ -468,7 +468,7 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     // Version
     g.setFont (juce::Font (8.5f));
     g.setColour (kTextDim.withAlpha (0.45f));
-    g.drawText ("v1.3", W - 48, 36, 40, 10, juce::Justification::centredRight, false);
+    g.drawText ("v1.5", W - 48, 36, 40, 10, juce::Justification::centredRight, false);
 
     // VU meters
     {

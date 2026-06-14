@@ -158,6 +158,7 @@ void EchoDelayAudioProcessor::prepareToPlay (double sr, int)
     inRmsSmooth  = 0.f;
     outRmsSmooth = 0.f;
     rmsCoeff     = std::exp (-1.f / (0.05f * (float)sr));
+    silentBlockCount = 0;
 
     // 5ms delay smoothing
     delaySmooth = std::exp (-1.f / (0.005f * (float)sr));
@@ -462,14 +463,34 @@ void EchoDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     {
         const float rmsIn  = std::sqrt (inSumSq  / (float)numSamples);
         const float rmsOut = std::sqrt (outSumSq / (float)numSamples);
-        inRmsSmooth  = rmsCoeff * inRmsSmooth  + (1.f - rmsCoeff) * rmsIn;
-        outRmsSmooth = rmsCoeff * outRmsSmooth + (1.f - rmsCoeff) * rmsOut;
+
+        // Per-block coefficient so the 50ms time constant is correct at any block size.
+        // (rmsCoeff is a per-sample coeff; applying it once per block made decay ~2000x slower)
+        const float rmsBlock = std::exp (-(float)numSamples / (0.05f * (float)currentSampleRate));
+        inRmsSmooth  = rmsBlock * inRmsSmooth  + (1.f - rmsBlock) * rmsIn;
+        outRmsSmooth = rmsBlock * outRmsSmooth + (1.f - rmsBlock) * rmsOut;
 
         auto toDb = [](float x) noexcept {
             return x > 1.e-6f ? 20.f * std::log10 (x) : -120.f;
         };
         inputLevelDb .store (juce::jlimit (-120.f, 6.f, toDb (inRmsSmooth)));
         outputLevelDb.store (juce::jlimit (-120.f, 6.f, toDb (outRmsSmooth)));
+
+        // Silence detection: if output stays below -80 dB for 3 seconds, flush delay
+        // buffers and filter states to prevent infinite tails and denormal accumulation.
+        const int kSilenceBlocks = (int)(3.0 * currentSampleRate / std::max (1, numSamples));
+        if (outRmsSmooth < 1.e-4f)   // ~-80 dB
+            ++silentBlockCount;
+        else
+            silentBlockCount = 0;
+
+        if (silentBlockCount > kSilenceBlocks)
+        {
+            for (auto& buf : delayBuffer) std::fill (buf.begin(), buf.end(), 0.f);
+            lpState.fill (0.f);
+            hpState.fill (0.f);
+            silentBlockCount = 0;
+        }
 
         // History: store output level for graph
         int wp = historyWritePos.load();

@@ -121,9 +121,10 @@ private:
     std::array<float, 2> hpState { 0.f, 0.f };
 
     // Meters
-    float inRmsSmooth  { 0.f };
-    float outRmsSmooth { 0.f };
-    float rmsCoeff     { 0.f };
+    float inRmsSmooth    { 0.f };
+    float outRmsSmooth   { 0.f };
+    float rmsCoeff       { 0.f };
+    int   silentBlockCount { 0 };
 
     // Tap-tempo
     static constexpr int   kMaxTaps      = 8;
