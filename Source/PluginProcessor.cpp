@@ -383,9 +383,11 @@ void EchoDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         float fbL   = lpState[0] - hpState[0];
         float fbR   = lpState[1] - hpState[1];
 
-        // Feedback saturation (drive from input gain for warmth)
-        fbL = saturate (fbL, satStyle, (satStyle == 0) ? 1.f : (satInGain * 0.5f + 0.5f));
-        fbR = saturate (fbR, satStyle, (satStyle == 0) ? 1.f : (satInGain * 0.5f + 0.5f));
+        // Feedback saturation — unit drive only, so feedbackFrac alone controls decay rate.
+        // Using satInGain here caused effective feedback of feedbackFrac * drive ≈ 0.975
+        // (near-unity) when INPUT was above 0 dB, producing infinite-sounding tails.
+        fbL = saturate (fbL, satStyle, 1.f);
+        fbR = saturate (fbR, satStyle, 1.f);
 
         // Mode-specific routing
         float writeL = 0.f, writeR = 0.f;
@@ -439,8 +441,9 @@ void EchoDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             }
         }
 
-        writeDelay (0, writeL);
-        writeDelay (1, writeR);
+        // Hard-clip before writing to delay buffer — prevents any runaway feedback
+        writeDelay (0, juce::jlimit (-1.f, 1.f, writeL));
+        writeDelay (1, juce::jlimit (-1.f, 1.f, writeR));
 
         // Output saturation + gain
         wetL = saturate (wetL, satStyle, satStyle == 0 ? satOutGain : satOutGain * 0.8f);
