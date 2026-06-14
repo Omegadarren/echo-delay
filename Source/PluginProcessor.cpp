@@ -375,6 +375,11 @@ void EchoDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         lpState[1] = lpState[1] + lpCoeff * (delOutR - lpState[1]);
         hpState[0] = hpCoeff * (hpState[0] + lpState[0] - delOutL);
         hpState[1] = hpCoeff * (hpState[1] + lpState[1] - delOutR);
+        // Kill denormals / near-zero residuals that would recirculate forever
+        if (std::abs (lpState[0]) < 1.e-15f) lpState[0] = 0.f;
+        if (std::abs (lpState[1]) < 1.e-15f) lpState[1] = 0.f;
+        if (std::abs (hpState[0]) < 1.e-15f) hpState[0] = 0.f;
+        if (std::abs (hpState[1]) < 1.e-15f) hpState[1] = 0.f;
         float fbL   = lpState[0] - hpState[0];
         float fbR   = lpState[1] - hpState[1];
 
@@ -476,9 +481,9 @@ void EchoDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         inputLevelDb .store (juce::jlimit (-120.f, 6.f, toDb (inRmsSmooth)));
         outputLevelDb.store (juce::jlimit (-120.f, 6.f, toDb (outRmsSmooth)));
 
-        // Silence detection: if output stays below -80 dB for 3 seconds, flush delay
+        // Silence detection: if output stays below -80 dB for 1 second, flush delay
         // buffers and filter states to prevent infinite tails and denormal accumulation.
-        const int kSilenceBlocks = (int)(3.0 * currentSampleRate / std::max (1, numSamples));
+        const int kSilenceBlocks = (int)(1.0 * currentSampleRate / std::max (1, numSamples));
         if (outRmsSmooth < 1.e-4f)   // ~-80 dB
             ++silentBlockCount;
         else
