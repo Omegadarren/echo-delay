@@ -84,6 +84,7 @@ private:
 
     // ── Zoom ──────────────────────────────────────────────────────────────
     int  zoomIndex     { 0 };
+    bool centred = false;
     bool lastSyncState { false };
     juce::Rectangle<int> zoomButtonBounds;
 

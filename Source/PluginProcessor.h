@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <JuceHeader.h>
 #include <array>
 #include <atomic>
@@ -106,7 +106,7 @@ public:
     // Tap-tempo state (UI calls tapTempoHit())
     void tapTempoHit();
 
-    int editorZoomIndex { 0 };
+    int editorZoomIndex { 1 };
 
 private:
     // ── DSP state ─────────────────────────────────────────────────────────────

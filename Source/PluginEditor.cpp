@@ -200,7 +200,20 @@ EchoDelayAudioProcessorEditor::~EchoDelayAudioProcessorEditor()
 }
 
 //==============================================================================
-void EchoDelayAudioProcessorEditor::visibilityChanged()      { if (isVisible()) applyZoom(); }
+void EchoDelayAudioProcessorEditor::visibilityChanged()
+{
+    if (isVisible())
+    {
+        applyZoom();
+        if (! centred)
+        {
+            centred = true;
+            if (auto* tlw = getTopLevelComponent(); tlw != this)
+                if (auto* d = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
+                    tlw->setCentrePosition (d->userArea.getCentre());
+        }
+    }
+}
 void EchoDelayAudioProcessorEditor::parentHierarchyChanged() { applyZoom(); }
 void EchoDelayAudioProcessorEditor::applyZoom()
 {
