@@ -1,8 +1,8 @@
 #pragma once
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "Ui/PlateLookAndFeel.h"
 
-class EchoDelayLAF;
 
 //==============================================================================
 class EchoDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
@@ -27,7 +27,7 @@ public:
 
 private:
     EchoDelayAudioProcessor& processorRef;
-    std::unique_ptr<EchoDelayLAF> laf;
+    std::unique_ptr<PlateUi::PlateLookAndFeel> laf;
 
     using SliderAtt = juce::AudioProcessorValueTreeState::SliderAttachment;
     using ButtonAtt = juce::AudioProcessorValueTreeState::ButtonAttachment;

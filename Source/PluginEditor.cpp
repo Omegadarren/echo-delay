@@ -1,109 +1,27 @@
-#include "PluginEditor.h"
+﻿#include "PluginEditor.h"
+#include "Ui/PlateLookAndFeel.h"
 
 constexpr float       EchoDelayAudioProcessorEditor::kZoomFactors[];
 constexpr const char* EchoDelayAudioProcessorEditor::kZoomLabels[];
 
 //==============================================================================
-//  Colour palette
+//  Colour palette  (warm-dark theme from PlateUi)
 //==============================================================================
-static const juce::Colour kBg       {  20,  21,  32 };
-static const juce::Colour kPanel    {  14,  15,  24 };
-static const juce::Colour kHeader   {  22,  54,  98 };
-static const juce::Colour kAccent   {  65, 145, 210 };
-static const juce::Colour kTextMain { 225, 238, 255 };
-static const juce::Colour kTextDim  { 115, 152, 195 };
-static const juce::Colour kDivider  {  48,  82, 124 };
-static const juce::Colour kGold     { 220, 190,  55 };
-static const juce::Colour kOrange   { 200, 100,  45 };
-static const juce::Colour kGreen    {  55, 210, 110 };
-static const juce::Colour kRed      { 220,  60,  60 };
+using T = PlateUi::Theme;
+static const juce::Colour kBg       = T::background();
+static const juce::Colour kPanel    = T::surface();
+static const juce::Colour kHeader   = T::surfaceRaised();
+static const juce::Colour kAccent   = T::accent();
+static const juce::Colour kTextMain = T::text();
+static const juce::Colour kTextDim  = T::textDim();
+static const juce::Colour kDivider  = T::border();
+static const juce::Colour kGold     = T::accentBright();
+static const juce::Colour kOrange   = T::accent();
+static const juce::Colour kGreen    = T::accentTertiary();
+static const juce::Colour kRed      = T::meterHot();
 
-//==============================================================================
-//  Custom LookAndFeel
-//==============================================================================
-class EchoDelayLAF : public juce::LookAndFeel_V4
-{
-public:
-    EchoDelayLAF()
-    {
-        setColour (juce::Slider::thumbColourId,               kAccent);
-        setColour (juce::Slider::rotarySliderFillColourId,    kAccent);
-        setColour (juce::Slider::rotarySliderOutlineColourId, kDivider);
-        setColour (juce::Slider::textBoxTextColourId,         kTextDim);
-        setColour (juce::Slider::textBoxBackgroundColourId,   kPanel.darker (0.3f));
-        setColour (juce::Slider::textBoxOutlineColourId,      juce::Colours::transparentBlack);
-        setColour (juce::Slider::textBoxHighlightColourId,    kAccent.withAlpha (0.4f));
-        setColour (juce::Label::textColourId,                 kTextMain);
-        setColour (juce::Label::backgroundColourId,           juce::Colours::transparentBlack);
-        setColour (juce::ComboBox::textColourId,              kTextMain);
-        setColour (juce::ComboBox::backgroundColourId,        kPanel);
-        setColour (juce::ComboBox::outlineColourId,           kDivider);
-        setColour (juce::ComboBox::arrowColourId,             kTextDim);
-        setColour (juce::PopupMenu::backgroundColourId,       juce::Colour (14, 16, 26));
-        setColour (juce::PopupMenu::textColourId,             kTextMain);
-        setColour (juce::PopupMenu::highlightedBackgroundColourId, kAccent.withAlpha (0.28f));
-        setColour (juce::TextButton::buttonColourId,          kPanel);
-        setColour (juce::TextButton::buttonOnColourId,        kAccent.withAlpha (0.28f));
-        setColour (juce::TextButton::textColourOnId,          kTextMain);
-        setColour (juce::TextButton::textColourOffId,         kTextDim.withAlpha (0.55f));
-    }
-
-    void drawRotarySlider (juce::Graphics& g, int x, int y, int w, int h,
-                           float pos, float startA, float endA, juce::Slider& s) override
-    {
-        const float cx = x + w * 0.5f, cy = y + h * 0.5f;
-        const float r  = juce::jmin (w, h) * 0.5f - 4.f;
-        juce::Colour fillCol = s.findColour (juce::Slider::rotarySliderFillColourId);
-
-        juce::Path arc;
-        arc.addCentredArc (cx, cy, r, r, 0.f, startA, endA, true);
-        g.setColour (kDivider.withAlpha (0.35f));
-        g.strokePath (arc, juce::PathStrokeType (2.5f, juce::PathStrokeType::curved,
-                                                  juce::PathStrokeType::rounded));
-        float fe = startA + pos * (endA - startA);
-        juce::Path fill;
-        fill.addCentredArc (cx, cy, r, r, 0.f, startA, fe, true);
-        g.setColour (fillCol.withAlpha (0.80f));
-        g.strokePath (fill, juce::PathStrokeType (2.5f, juce::PathStrokeType::curved,
-                                                   juce::PathStrokeType::rounded));
-        const float kr = r * 0.62f;
-        juce::ColourGradient grad (juce::Colour (90, 98, 118), cx - kr * 0.4f, cy - kr * 0.5f,
-                                    juce::Colour (28, 30, 42),  cx + kr * 0.4f, cy + kr * 0.5f, false);
-        g.setGradientFill (grad);
-        g.fillEllipse (cx - kr, cy - kr, kr * 2, kr * 2);
-        g.setColour (kDivider.withAlpha (0.5f));
-        g.drawEllipse (cx - kr, cy - kr, kr * 2, kr * 2, 1.f);
-        juce::ColourGradient rim (juce::Colours::white.withAlpha (0.18f), cx, cy - kr,
-                                   juce::Colours::transparentBlack, cx, cy + kr, false);
-        g.setGradientFill (rim);
-        g.fillEllipse (cx - kr, cy - kr, kr * 2, kr * 2);
-        float a = startA + pos * (endA - startA);
-        g.setColour (kTextMain.withAlpha (0.9f));
-        g.drawLine (cx + (kr * 0.25f) * std::sin (a), cy - (kr * 0.25f) * std::cos (a),
-                    cx + (kr - 4.f)   * std::sin (a), cy - (kr - 4.f)   * std::cos (a), 1.8f);
-    }
-
-    void drawButtonBackground (juce::Graphics& g, juce::Button& b, const juce::Colour&,
-                                bool, bool) override
-    {
-        auto bounds = b.getLocalBounds().toFloat().reduced (0.5f);
-        g.setColour (b.getToggleState() ? kAccent.withAlpha (0.28f) : kPanel);
-        g.fillRoundedRectangle (bounds, 5.f);
-        g.setColour (b.getToggleState() ? kAccent : kDivider.withAlpha (0.55f));
-        g.drawRoundedRectangle (bounds.reduced (0.5f), 4.5f, 1.f);
-    }
-
-    void drawButtonText (juce::Graphics& g, juce::TextButton& b, bool, bool) override
-    {
-        g.setFont (juce::Font (10.f, juce::Font::bold));
-        g.setColour (b.getToggleState() ? kTextMain : kTextDim.withAlpha (0.6f));
-        g.drawText (b.getButtonText(), b.getLocalBounds(), juce::Justification::centred, false);
-    }
-
-    juce::Font getLabelFont (juce::Label&)       override { return juce::Font (11.f); }
-    juce::Font getComboBoxFont (juce::ComboBox&) override { return juce::Font (11.f, juce::Font::bold); }
-    juce::Font getPopupMenuFont()                override { return juce::Font (12.f); }
-};
+// Use the shared warm-dark PlateLookAndFeel
+using EchoDelayLAF = PlateUi::PlateLookAndFeel;
 
 //==============================================================================
 //  Helpers
@@ -427,30 +345,19 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     (void)H;
 
     // Background
-    g.setColour (kBg);
-    g.fillAll();
+    PlateUi::drawBackground (g, getLocalBounds(), true);
 
-    // Header gradient
-    {
-        juce::ColourGradient hdr (kHeader.brighter (0.05f), 0.f, 0.f,
-                                   kHeader.darker   (0.25f), 0.f, 50.f, false);
-        g.setGradientFill (hdr);
-        g.fillRect (0, 0, W, 50);
-        g.setColour (kDivider.withAlpha (0.45f));
-        g.fillRect (0, 49, W, 1);
-    }
+    // Header bar
+    PlateUi::drawHeaderBar (g, getLocalBounds(), 50, true);
 
     // Zoom button
     {
         auto zb = zoomButtonBounds;
-        g.setColour (kPanel.withAlpha (0.65f));
-        g.fillRoundedRectangle (zb.toFloat(), 5.f);
-        g.setColour (kDivider.withAlpha (0.55f));
-        g.drawRoundedRectangle (zb.toFloat().reduced (0.5f), 4.5f, 0.8f);
-        g.setFont (juce::Font (10.5f, juce::Font::bold));
-        g.setColour (kTextMain);
-        g.drawText (kZoomLabels[zoomIndex], zb, juce::Justification::centred, false);
+        PlateUi::drawFloatingControl (g, zb, kZoomLabels[zoomIndex], false);
     }
+
+    // OMEGADARREN brand
+    PlateUi::drawBrandMark (g, { 14, 10, 140, 18 }, true);
 
     // Title
     {
@@ -459,15 +366,17 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
         const juce::String p1 = "ECHO", p2 = " DELAY";
         float w1 = tf.getStringWidthFloat (p1), w2 = tf.getStringWidthFloat (p2);
         float sx = (W - w1 - w2) * 0.5f;
-        g.setColour (kTextMain.withAlpha (0.72f));
+        g.setColour (PlateUi::Theme::text().withAlpha (0.88f));
         g.drawText (p1, (int)sx,        15, (int)w1 + 4, 20, juce::Justification::centredLeft, false);
-        g.setColour (kAccent);
+        juce::ColourGradient tGrad (PlateUi::Theme::accentBright(), sx + w1, 15.f,
+                                    PlateUi::Theme::accentDeep(),   sx + w1 + w2, 35.f, false);
+        g.setGradientFill (tGrad);
         g.drawText (p2, (int)(sx + w1), 15, (int)w2 + 4, 20, juce::Justification::centredLeft, false);
     }
 
     // Version
     g.setFont (juce::Font (8.5f));
-    g.setColour (kTextDim.withAlpha (0.45f));
+    g.setColour (PlateUi::Theme::textDim().withAlpha (0.45f));
     g.drawText ("v1.7", W - 48, 36, 40, 10, juce::Justification::centredRight, false);
 
     // VU meters
