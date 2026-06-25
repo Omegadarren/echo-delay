@@ -396,7 +396,7 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     }
 
     // OMEGADARREN brand
-    PlateUi::drawBrandMark (g, { W - 156, 8, 130, 16 }, true);
+    PlateUi::drawBrandMark (g, { 496, 8, 130, 16 }, true);
 
     // Title
     {
