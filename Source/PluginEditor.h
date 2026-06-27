@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "Ui/PlateLookAndFeel.h"
+#include "EchoPresets.h"
 
 
 //==============================================================================
@@ -82,6 +83,9 @@ private:
     juce::TextButton primeModeToggle { "PRIME" };
     std::unique_ptr<ButtonAtt> primeModeAtt;
 
+    // ── Preset selector ────────────────────────────────────────────────────
+    juce::ComboBox presetCombo;
+
     // ── Zoom ──────────────────────────────────────────────────────────────
     int  zoomIndex     { 0 };
     bool centred = false;
@@ -91,6 +95,7 @@ private:
     juce::TooltipWindow tooltipWindow { this, 600 };   // 600 ms hover delay
 
     void applyZoom();
+    void applyPreset (int presetIndex);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EchoDelayAudioProcessorEditor)
 };

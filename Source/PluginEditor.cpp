@@ -191,6 +191,29 @@ EchoDelayAudioProcessorEditor::EchoDelayAudioProcessorEditor (EchoDelayAudioProc
     satStyleAtt = std::make_unique<ComboAtt> (p.apvts, "satStyle", satStyleCombo);
 
     zoomIndex = p.editorZoomIndex;
+
+    // ── Preset selector ────────────────────────────────────────────────────
+    presetCombo.setTextWhenNothingSelected ("-- SELECT PRESET --");
+    presetCombo.setScrollWheelEnabled (false);
+    presetCombo.setTooltip ("Load a factory preset. All knob values are replaced.");
+
+    int itemId = 1;
+    for (int ci = 0; ci < EchoPresets::kNumCategories; ++ci)
+    {
+        const auto& cat = EchoPresets::kCategories[ci];
+        presetCombo.addSectionHeading (cat.name);
+        for (int pi = 0; pi < cat.count; ++pi)
+            presetCombo.addItem (EchoPresets::kPresets[cat.start + pi].name, itemId++);
+    }
+
+    presetCombo.onChange = [this]()
+    {
+        const int id = presetCombo.getSelectedId();
+        if (id > 0)
+            applyPreset (id - 1);
+    };
+    addAndMakeVisible (presetCombo);
+
     setSize (kBaseW, kBaseH);
     applyZoom();
     startTimerHz (30);
@@ -241,6 +264,32 @@ void EchoDelayAudioProcessorEditor::visibilityChanged()
     }
 }
 void EchoDelayAudioProcessorEditor::parentHierarchyChanged() { applyZoom(); }
+//==============================================================================
+void EchoDelayAudioProcessorEditor::applyPreset (int idx)
+{
+    jassert (idx >= 0 && idx < EchoPresets::kNumPresets);
+    const auto& p = EchoPresets::kPresets[idx];
+    auto& avts = processorRef.apvts;
+
+    avts.getParameterAsValue ("echoTime") .setValue (p.echoTime);
+    avts.getParameterAsValue ("feedback") .setValue (p.feedback);
+    avts.getParameterAsValue ("mix")      .setValue (p.mix);
+    avts.getParameterAsValue ("lowCut")   .setValue (p.lowCut);
+    avts.getParameterAsValue ("highCut")  .setValue (p.highCut);
+    avts.getParameterAsValue ("groove")   .setValue (p.groove);
+    avts.getParameterAsValue ("feel")     .setValue (p.feel);
+    avts.getParameterAsValue ("mode")     .setValue (p.mode);
+    avts.getParameterAsValue ("syncMode") .setValue (p.syncMode ? 1 : 0);
+    avts.getParameterAsValue ("noteDiv")  .setValue (p.noteDiv);
+    avts.getParameterAsValue ("satInput") .setValue (p.satInput);
+    avts.getParameterAsValue ("satOutput").setValue (p.satOutput);
+    avts.getParameterAsValue ("satStyle") .setValue (p.satStyle);
+    avts.getParameterAsValue ("width")    .setValue (p.width);
+    avts.getParameterAsValue ("lrOffset") .setValue (p.lrOffset);
+    avts.getParameterAsValue ("accent")   .setValue (p.accent);
+    avts.getParameterAsValue ("primeMode").setValue (p.primeMode ? 1 : 0);
+}
+
 void EchoDelayAudioProcessorEditor::applyZoom()
 {
     if (getPeer()) setScaleFactor (kZoomFactors[zoomIndex]);
@@ -296,6 +345,7 @@ void EchoDelayAudioProcessorEditor::resized()
 
     // Header
     zoomButtonBounds = { 8, 12, 38, 26 };
+    presetCombo.setBounds (50, 12, 220, 26);
     modeLabel.setBounds (W - 196, 10, 36, 12);
     modeCombo.setBounds (W - 196, 22, 148, 24);
 
@@ -416,7 +466,7 @@ void EchoDelayAudioProcessorEditor::paint (juce::Graphics& g)
     // Version
     g.setFont (juce::Font (8.5f));
     g.setColour (PlateUi::Theme::textDim().withAlpha (0.45f));
-    g.drawText ("v1.7", W - 48, 36, 40, 10, juce::Justification::centredRight, false);
+    g.drawText ("v2.4", W - 48, 36, 40, 10, juce::Justification::centredRight, false);
 
     // VU meters
     {
